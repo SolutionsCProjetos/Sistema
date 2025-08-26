@@ -18,7 +18,7 @@ type Client = {
   funcionarioSecundario?: Employee | null;
 };
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 30;
 
 export default function ListaClientePage() {
   const [allClients, setAllClients] = useState<Client[]>([]);
@@ -267,4 +267,5 @@ export default function ListaClientePage() {
       <Footer />
     </div>
   );
+
 }
