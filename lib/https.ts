@@ -18,17 +18,27 @@ export class ApiError extends Error {
   }
 }
 
+// 🔒 fallback seguro: proxy do Next em /api
 const DEFAULT_BASE_URL =
-  process.env.API_URL ||
-  process.env.NEXT_PUBLIC_API_URL;
+  process.env.NEXT_PUBLIC_API_URL ??
+  process.env.API_URL ??
+  '/api';
 
 function getClientToken(): string | null {
   if (typeof window === 'undefined') return null;
   try {
+    // 🔑 padroniza em 'authToken', mas mantém compatibilidade
     return localStorage.getItem('authToken') || localStorage.getItem('token');
   } catch {
     return null;
   }
+}
+
+function joinUrl(base: string, path: string) {
+  if (!base) return path;
+  // mantém http/https absolutos se alguém chamar com URL completa (mas preferimos SEMPRE usar paths)
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
 }
 
 async function apiFetch<T>(
@@ -38,53 +48,39 @@ async function apiFetch<T>(
   opts?: ApiOptions
 ): Promise<T> {
   const baseUrl = (opts?.baseUrl ?? DEFAULT_BASE_URL) || '';
-  if (!baseUrl) {
-    console.warn('⚠️ [HTTPS] BASE URL vazia. Defina API_URL ou NEXT_PUBLIC_API_URL.');
+
+  if (!baseUrl && typeof window !== 'undefined') {
+    console.warn('⚠️ [HTTPS] BASE URL vazia. Defina NEXT_PUBLIC_API_URL ou use /api via rewrites.');
   }
 
-  // 1) Comece com Accept padrão
-  const mergedHeaders: Record<string, string> = {
-    Accept: 'application/json',
-  };
+  const mergedHeaders: Record<string, string> = { Accept: 'application/json' };
 
-  // 2) Mescle headers vindos do caller (NUNCA substituir os que definirmos depois)
   if (opts?.headers) {
-    for (const [k, v] of Object.entries(opts.headers)) {
-      mergedHeaders[k] = v;
-    }
+    for (const [k, v] of Object.entries(opts.headers)) mergedHeaders[k] = v;
   }
 
-  // 3) Se não veio Authorization e estivermos no client, tente localStorage
   if (!mergedHeaders['Authorization'] && typeof window !== 'undefined') {
     const token = getClientToken();
-    if (token) {
-      mergedHeaders['Authorization'] = `Bearer ${token}`;
-    }
+    if (token) mergedHeaders['Authorization'] = `Bearer ${token}`;
   }
 
-  // 4) Construa o body e garanta Content-Type quando necessário
   let finalBody: BodyInit | undefined;
   if (body !== null && body !== undefined) {
     if (typeof body === 'string') {
       finalBody = body;
-      // Se caller não passou Content-Type, assumimos JSON string
-      if (!mergedHeaders['Content-Type']) {
-        mergedHeaders['Content-Type'] = 'application/json';
-      }
+      if (!mergedHeaders['Content-Type']) mergedHeaders['Content-Type'] = 'application/json';
     } else if (body instanceof FormData) {
-      finalBody = body; // browser define o boundary
-      // NÃO definir Content-Type aqui
+      finalBody = body; // boundary automático
     } else if (
       body instanceof Blob ||
       body instanceof ArrayBuffer ||
       body instanceof URLSearchParams
     ) {
       finalBody = body;
-      // Content-Type opcional conforme o tipo
     } else if (typeof body === 'object') {
       try {
         finalBody = JSON.stringify(body);
-        mergedHeaders['Content-Type'] = mergedHeaders['Content-Type'] || 'application/json';
+        mergedHeaders['Content-Type'] ||= 'application/json';
       } catch (error) {
         console.error('❌ [HTTPS] Erro ao serializar body:', error);
         throw new Error('Erro ao serializar dados para JSON');
@@ -92,32 +88,24 @@ async function apiFetch<T>(
     }
   }
 
-  // 5) Monte fetchOptions sem deixar opts.headers sobrescrever o que preparamos
   const { headers: _ignored, ...restOpts } = opts ?? {};
   const fetchOptions: RequestInit = {
     method,
     headers: mergedHeaders,
     cache: 'no-store',
     ...restOpts,
+    ...(finalBody !== undefined ? { body: finalBody } : {}),
   };
-  if (finalBody !== undefined) {
-    fetchOptions.body = finalBody;
-  }
-
-
 
   try {
-    const res = await fetch(`${baseUrl}${path}`, fetchOptions as RequestInit);
+    const url = joinUrl(baseUrl, path);
+    const res = await fetch(url, fetchOptions);
 
     if (opts?.raw) return res as unknown as T;
 
     const text = await res.text();
     let payload: any = null;
-    try {
-      payload = text ? JSON.parse(text) : null;
-    } catch {
-      payload = text;
-    }
+    try { payload = text ? JSON.parse(text) : null; } catch { payload = text; }
 
     if (!res.ok) {
       const msg = payload?.message || payload?.error || `HTTP ${res.status}: ${res.statusText}`;
@@ -128,16 +116,13 @@ async function apiFetch<T>(
   } catch (error) {
     if (error instanceof ApiError) {
       console.error('❌ [HTTPS] API Error:', {
-        status: error.status,
-        message: error.message,
-        payload: error.payload,
+        status: error.status, message: error.message, payload: error.payload,
       });
       throw error;
     }
-    const errMsg =
-      typeof error === 'object' && error !== null && 'message' in error
-        ? (error as { message: string }).message
-        : String(error);
+    const errMsg = (typeof error === 'object' && error && 'message' in error)
+      ? (error as { message: string }).message
+      : String(error);
     console.error('❌ [HTTPS] Network Error:', errMsg);
     throw new Error(`Erro de rede: ${errMsg}`);
   }
