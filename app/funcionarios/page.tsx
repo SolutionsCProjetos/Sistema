@@ -128,23 +128,13 @@ export default function ListaFuncionariosPage() {
     }
   }
 
-  const pagesWindow = useMemo(() => {
-    const maxBtns = 15;
-    const start = Math.max(1, page - Math.floor(maxBtns / 2));
-    const end = Math.min(totalPag, start + maxBtns - 1);
-    const out: number[] = [];
-    for (let p = start; p <= end; p++) out.push(p);
-    return out;
-  }, [page, totalPag]);
-
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header userName="Administrador" />
 
       <main className="flex-grow mx-4 lg:mx-[10%] py-6">
         <div className="bg-white rounded-xl shadow-md p-5">
-
-          {/* filtros (busca 50% máx e botões no end; sem "Aplicar") */}
+          {/* filtros (busca 50% máx e botões à direita; sem "Aplicar") */}
           <div className="flex flex-col lg:flex-row lg:items-end gap-3 mb-6">
             <div className="w-full lg:w-1/2">
               <label className="text-sm text-gray-700 mb-1 block">Buscar</label>
@@ -227,36 +217,30 @@ export default function ListaFuncionariosPage() {
             </table>
           </div>
 
-            {/* paginação */}
-            {list.length > 0 && (
-              <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
-                <button
-                  className="px-4 py-2 rounded bg-[#007cb2] text-white disabled:bg-gray-400"
-                  disabled={page === 1}
-                  onClick={() => setPage(1)}
-                >
-                  Primeiro
-                </button>
-                {pagesWindow.map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`px-3 py-1 rounded border ${
-                      page === p ? 'bg-[#1c7d87] text-white' : 'bg-white text-[#1c7d87]'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-                <button
-                  className="px-4 py-2 rounded bg-[#007cb2] text-white disabled:bg-gray-400"
-                  disabled={page === totalPag}
-                  onClick={() => setPage(totalPag)}
-                >
-                  Último
-                </button>
-              </div>
-            )}
+          {/* paginação padronizada */}
+          {list.length > 0 && (
+            <div className="mt-6 flex flex-col xs:flex-row justify-center items-center gap-3">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                className="px-4 py-2 rounded bg-[#007cb2] text-white hover:bg-[#00689c] disabled:bg-gray-400"
+              >
+                Anterior
+              </button>
+
+              <span className="text-gray-700">
+                Página {page} de {totalPag}
+              </span>
+
+              <button
+                disabled={page === totalPag}
+                onClick={() => setPage((p) => Math.min(p + 1, totalPag))}
+                className="px-4 py-2 rounded bg-[#007cb2] text-white hover:bg-[#00689c] disabled:bg-gray-400"
+              >
+                Próxima
+              </button>
+            </div>
+          )}
         </div>
       </main>
 
