@@ -1,88 +1,102 @@
 // components/Header.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Logo from '../assets/img/Logo.png'
-import { FaUser, FaSignOutAlt, FaBars, FaTimes, FaHome, FaUsers, FaChartBar, FaCog } from 'react-icons/fa';
+import Logo from '../assets/img/Logo.png';
+import {
+  FaUser,
+  FaSignOutAlt,
+  FaBars,
+  FaTimes,
+  FaHome,
+  FaUsers,
+  FaChartBar,
+  FaCog,
+} from 'react-icons/fa';
 
 interface HeaderProps {
   userName?: string;
 }
 
-export default function Header({ userName = "Usuário Admin" }: HeaderProps) {
+export default function Header({ userName = 'Usuário Admin' }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+  const closeMenu = () => setIsMenuOpen(false);
 
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
+  const isActive = (path: string) =>
+    pathname === path
+      ? 'text-[#1c7d87] font-semibold'
+      : 'text-gray-700 hover:text-[#007cb2]';
 
-  const isActive = (path: string) => {
-    return pathname === path ? 'text-[#1c7d87] font-semibold' : 'text-gray-700 hover:text-[#007cb2]';
+  // valida sessão
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/'); // volta pro login
+    }
+  }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    document.cookie =
+      'authToken=; Path=/; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    router.push('/');
   };
 
   return (
     <header className="bg-white shadow-md">
       <div className="mx-4 lg:mx-[20%] py-4 px-6 flex justify-between items-center">
+        {/* logo */}
         <div className="flex items-center">
           <Link href="/home" className="flex items-center">
-            <Image src={Logo} height={150} width={150} alt='Logo'/>
+            <Image src={Logo} height={150} width={150} alt="Logo" />
           </Link>
         </div>
 
         {/* Menu Desktop */}
         <nav className="hidden md:flex space-x-6">
-          <Link 
-            href="/home" 
-            className={`font-medium flex items-center ${isActive('/home')}`}
-          >
+          <Link href="/home" className={`font-medium flex items-center ${isActive('/home')}`}>
             <FaHome className="mr-1" /> Home
           </Link>
-          {/* <Link 
-            href="/clientes" 
-            className={`font-medium flex items-center ${isActive('/clientes')}`}
-          >
-            <FaUsers className="mr-1" /> Clientes
-          </Link> */}
-          {/* <Link 
-            href="/relatorios" 
-            className={`font-medium flex items-center ${isActive('/relatorios')}`}
-          >
-            <FaChartBar className="mr-1" /> Relatórios
-          </Link> */}
-          <Link 
-            href="/config" 
-            className={`font-medium flex items-center ${isActive('/config')}`}
-          >
+          <Link href="/agenda" className={`font-medium flex items-center ${isActive('/agenda')}`}>
+            <FaUsers className="mr-1" /> Agenda
+          </Link>
+          <Link href="/receber" className={`font-medium flex items-center ${isActive('/receber')}`}>
+            <FaChartBar className="mr-1" /> Financeiro
+          </Link>
+          <Link href="/funcionarios" className={`font-medium flex items-center ${isActive('/funcionarios')}`}>
+            <FaUsers className="mr-1" /> Funcionários
+          </Link>
+          <Link href="/usuarios" className={`font-medium flex items-center ${isActive('/usuarios')}`}>
+            <FaUsers className="mr-1" /> Usuários
+          </Link>
+          <Link href="/config" className={`font-medium flex items-center ${isActive('/config')}`}>
             <FaCog className="mr-1" /> Configurações
           </Link>
         </nav>
 
+        {/* User + logout */}
         <div className="flex items-center space-x-4">
           <div className="hidden md:flex items-center space-x-2 text-gray-700">
             <FaUser className="text-[#1c7d87]" />
             <span className="hidden lg:inline">{userName}</span>
           </div>
-          
-          <button 
+
+          <button
             className="p-2 text-gray-500 hover:text-red-500 transition-colors hidden md:block"
-            onClick={() => {
-              // Aqui você implementaria a lógica de logout
-              console.log('Logout clicked');
-            }}
+            onClick={handleLogout}
           >
             <FaSignOutAlt />
           </button>
 
-          {/* Menu Mobile Button */}
-          <button 
+          {/* Mobile menu button */}
+          <button
             className="p-2 text-gray-700 md:hidden"
             onClick={toggleMenu}
             aria-label="Abrir menu"
@@ -96,45 +110,58 @@ export default function Header({ userName = "Usuário Admin" }: HeaderProps) {
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200">
           <div className="px-6 py-4 space-y-4">
-            <Link 
-              href="/" 
-              className={`block font-medium flex items-center ${isActive('/')}`}
+            <Link
+              href="/home"
+              className={`block font-medium flex items-center ${isActive('/home')}`}
               onClick={closeMenu}
             >
               <FaHome className="mr-2" /> Home
             </Link>
-            <Link 
-              href="/clientes" 
-              className={`block font-medium flex items-center ${isActive('/clientes')}`}
+            <Link
+              href="/agenda"
+              className={`block font-medium flex items-center ${isActive('/agenda')}`}
               onClick={closeMenu}
             >
-              <FaUsers className="mr-2" /> Clientes
+              <FaUsers className="mr-2" /> Agenda
             </Link>
-            <Link 
-              href="/relatorios" 
-              className={`block font-medium flex items-center ${isActive('/relatorios')}`}
+            <Link
+              href="/receber"
+              className={`block font-medium flex items-center ${isActive('/receber')}`}
               onClick={closeMenu}
             >
-              <FaChartBar className="mr-2" /> Relatórios
+              <FaChartBar className="mr-2" /> Financeiro
             </Link>
-            <Link 
-              href="/config" 
+            <Link
+              href="/funcionarios"
+              className={`block font-medium flex items-center ${isActive('/funcionarios')}`}
+              onClick={closeMenu}
+            >
+              <FaUsers className="mr-2" /> Funcionários
+            </Link>
+            <Link
+              href="/usuarios"
+              className={`block font-medium flex items-center ${isActive('/usuarios')}`}
+              onClick={closeMenu}
+            >
+              <FaUsers className="mr-2" /> Usuários
+            </Link>
+            <Link
+              href="/config"
               className={`block font-medium flex items-center ${isActive('/config')}`}
               onClick={closeMenu}
             >
               <FaCog className="mr-2" /> Configurações
             </Link>
-            
+
             <div className="pt-4 border-t border-gray-200 flex items-center space-x-2 text-gray-700">
               <FaUser className="text-[#1c7d87]" />
               <span>{userName}</span>
             </div>
-            
-            <button 
+
+            <button
               className="w-full text-left text-gray-700 hover:text-red-500 transition-colors flex items-center"
               onClick={() => {
-                // Aqui você implementaria a lógica de logout
-                console.log('Logout clicked');
+                handleLogout();
                 closeMenu();
               }}
             >
