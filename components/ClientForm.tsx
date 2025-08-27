@@ -113,7 +113,100 @@ export default function ClientForm({
   };
 
  // No onSubmit do ClientForm
-const onSubmit = async (e: FormEvent) => {
+// const onSubmit = async (e: FormEvent) => {
+//   e.preventDefault();
+//   setErr('');
+
+//   // Validações
+//   if (!razaoSocial.trim()) {
+//     setErr('O nome do cliente é obrigatório!');
+//     return;
+//   }
+//   const cpfDigits = onlyDigits(cpf);
+//   const cnpjDigits = onlyDigits(cnpj);
+//   if (!cpfDigits && !cnpjDigits) {
+//     setErr('O CPF/CNPJ é obrigatório!');
+//     return;
+//   }
+//   if (onlyDigits(contato).length < 10) {
+//     setErr('O telefone é obrigatório!');
+//     return;
+//   }
+//   if (!vendedorId) {
+//     setErr('Selecione um vendedor válido!');
+//     return;
+//   }
+//   if (!cobradorId) {
+//     setErr('Selecione um cobrador válido!');
+//     return;
+//   }
+
+//   // ⚠️ IMPORTANTE: Contornar os problemas do backend
+//   const payload = {
+//     id: (initial as any)?.id,
+
+//     status: status || 'Ativo',
+//     email: email || null,
+//     contato: onlyDigits(contato) || null,
+    
+//     // Enviar CNPJ/CPF já formatados SEM PONTOS (como o backend espera)
+//     cnpj: cnpjDigits || null,  // ⚠️ Enviar null em vez de ''
+//     cpf: cpfDigits || null,    // ⚠️ Enviar null em vez de ''
+    
+//     razaoSocial: razaoSocial || null,
+//     fantasia: fantasia || null,
+
+//     // ⚠️ ENVIAR STRING VAZIA EM VEZ DE NULL para evitar erro no .replace()
+//     cep: onlyDigits(cep) || null,
+//     endereco: endereco || null,
+//     num: num || null,
+//     bairro: bairro || null,
+//     uf: uf || null,
+//     cidade: cidade || null,
+//     pontoReferencia: pontoReferencia || null,
+
+//     // ⚠️ ENVIAR STRING VAZIA EM VEZ DE NULL
+//     telefone_2: onlyDigits(telefone2) || null,
+
+//     funcionarioPrincipalId: Number(vendedorId),
+//     funcionarioSecundarioId: Number(cobradorId),
+
+//     situacao: situacao || 'Liberado',
+//     ficha: ficha || null,
+//     obs: obs || null,
+//   };
+
+//   // ⚠️ REMOVER CAMPOS VAZIOS que podem causar problemas
+//   const cleanedPayload = Object.fromEntries(
+//     Object.entries(payload).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+//   );
+
+//   setSaving(true);
+//   try {
+//     const res = await upsertClientAction(cleanedPayload);
+//     if (!res.ok) {
+//       setErr(res.message ?? 'Erro ao salvar.');
+//       return;
+//     }
+
+//     if (onSuccess) {
+//       onSuccess();
+//     } else if (mode === 'create') {
+//       const id = (res as any).data?.id;
+//       if (id) router.push("/home");
+//       else router.back();
+//     } else {
+//       router.back();
+//     }
+//   } catch (error: any) {
+//     console.error('Erro ao salvar cliente:', error);
+//     setErr(error.message || 'Erro ao salvar cliente. Verifique o console para mais detalhes.');
+//   } finally {
+//     setSaving(false);
+//   }
+// };
+
+  const onSubmit = async (e: FormEvent) => {
   e.preventDefault();
   setErr('');
 
@@ -141,52 +234,55 @@ const onSubmit = async (e: FormEvent) => {
     return;
   }
 
-  // ⚠️ IMPORTANTE: Contornar os problemas do backend
+  // ⚠️ IMPORTANTE: Enviar string vazia em vez de null
   const payload = {
     id: (initial as any)?.id,
 
     status: status || 'Ativo',
-    email: email || null,
-    contato: onlyDigits(contato) || null,
+    email: email || '', // string vazia
+    contato: onlyDigits(contato) || '',
     
-    // Enviar CNPJ/CPF já formatados SEM PONTOS (como o backend espera)
-    cnpj: cnpjDigits || null,  // ⚠️ Enviar null em vez de ''
-    cpf: cpfDigits || null,    // ⚠️ Enviar null em vez de ''
+    cnpj: onlyDigits(cnpj) || '',  // string vazia
+    cpf: onlyDigits(cpf) || '',    // string vazia
     
-    razaoSocial: razaoSocial || null,
-    fantasia: fantasia || null,
+    razaoSocial: razaoSocial || '',
+    fantasia: fantasia || '',
 
-    // ⚠️ ENVIAR STRING VAZIA EM VEZ DE NULL para evitar erro no .replace()
-    cep: onlyDigits(cep) || null,
-    endereco: endereco || null,
-    num: num || null,
-    bairro: bairro || null,
-    uf: uf || null,
-    cidade: cidade || null,
-    pontoReferencia: pontoReferencia || null,
+    cep: onlyDigits(cep) || '',    // string vazia
+    endereco: endereco || '',
+    num: num || '',
+    bairro: bairro || '',
+    uf: uf || '',
+    cidade: cidade || '',
+    pontoReferencia: pontoReferencia || '',
 
-    // ⚠️ ENVIAR STRING VAZIA EM VEZ DE NULL
-    telefone_2: onlyDigits(telefone2) || null,
+    telefone_2: onlyDigits(telefone2) || '', // string vazia
 
     funcionarioPrincipalId: Number(vendedorId),
     funcionarioSecundarioId: Number(cobradorId),
 
     situacao: situacao || 'Liberado',
-    ficha: ficha || null,
-    obs: obs || null,
+    ficha: ficha || '',
+    obs: obs || '',
   };
 
-  // ⚠️ REMOVER CAMPOS VAZIOS que podem causar problemas
-  const cleanedPayload = Object.fromEntries(
-    Object.entries(payload).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
-  );
+  // ⚠️ REMOVA ESTE FILTRO - deixe as strings vazias passarem!
+  // const cleanedPayload = Object.fromEntries(
+  //   Object.entries(payload).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+  // );
 
   setSaving(true);
   try {
-    const res = await upsertClientAction(cleanedPayload);
-    if (!res.ok) {
-      setErr(res.message ?? 'Erro ao salvar.');
-      return;
+    // Envie o payload diretamente, sem filtrar strings vazias
+    const res = await upsertClientAction(payload);
+    
+    if (res && typeof res === 'object' && 'ok' in res) {
+      if (!res.ok) {
+        setErr(res.message ?? 'Erro ao salvar.');
+        return;
+      }
+    } else {
+      throw new Error('Resposta inesperada do servidor');
     }
 
     if (onSuccess) {
@@ -200,7 +296,12 @@ const onSubmit = async (e: FormEvent) => {
     }
   } catch (error: any) {
     console.error('Erro ao salvar cliente:', error);
-    setErr(error.message || 'Erro ao salvar cliente. Verifique o console para mais detalhes.');
+    
+    if (error.status === 409) {
+      setErr('Este cliente já está cadastrado no sistema. Verifique o CPF/CNPJ.');
+    } else {
+      setErr(error.message || 'Erro ao salvar cliente.');
+    }
   } finally {
     setSaving(false);
   }
@@ -486,4 +587,5 @@ const onSubmit = async (e: FormEvent) => {
       </div>
     </form>
   );
+
 }
