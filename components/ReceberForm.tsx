@@ -22,10 +22,27 @@ function parseCurrencyBR(v: string): number {
   const n = Number(clean);
   return Number.isFinite(n) ? n : 0;
 }
+// function maskBR(raw: string) {
+//   const digits = raw.replace(/\D/g, '');
+//   const padded = digits.padStart(3, '0');
+//   const withComma = `${padded.slice(0, -2)},${padded.slice(-2)}`;
+//   return withComma.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+// }
+
 function maskBR(raw: string) {
-  const digits = raw.replace(/\D/g, '');
-  const padded = digits.padStart(3, '0');
+  // pega só dígitos
+  const digits = (raw || '').replace(/\D/g, '');
+  // normaliza para inteiro (remove zeros à esquerda de forma segura)
+  const n = parseInt(digits, 10);
+  if (!Number.isFinite(n)) return '0,00'; // vazio -> 0,00
+
+  const s = String(n);                // ex.: 0, 1, 12, 1234...
+  const padded = s.padStart(3, '0');  // garante pelo menos 2 casas decimais
+
+  // insere a vírgula antes das 2 últimas casas
   const withComma = `${padded.slice(0, -2)},${padded.slice(-2)}`;
+
+  // milhares com ponto
   return withComma.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
@@ -407,3 +424,4 @@ export default function ReceberForm({ editingId, initial, onSaved, onCancel }: P
     </div>
   );
 }
+
