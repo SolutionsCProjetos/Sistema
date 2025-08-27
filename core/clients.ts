@@ -83,26 +83,57 @@ function clean<T extends Record<string, any>>(obj: T): Partial<T> {
 }
 
 // Função auxiliar para converter string vazia em null
-const emptyToNull = (value: any) => 
-  (value !== null && value !== undefined && value !== '') ? value : null;
+// const emptyToNull = (value: any) => 
+//   (value !== null && value !== undefined && value !== '') ? value : null;
 
-// Use assim:
+// // Use assim:
+// function mapToBackend(input: UpsertClientInput) {
+//   const payload = {
+//     cnpj: emptyToNull(input.cnpj),
+//     cpf: emptyToNull(input.cpf),
+//     email: emptyToNull(input.email),
+//     fantasia: emptyToNull(input.fantasia),
+//     cep: emptyToNull(input.cep),
+//     endereco: emptyToNull(input.endereco),
+//     num: emptyToNull(input.num),
+//     bairro: emptyToNull(input.bairro),
+//     uf: emptyToNull(input.uf),
+//     cidade: emptyToNull(input.cidade),
+//     pontoReferencia: emptyToNull(input.pontoReferencia),
+//     telefone_2: emptyToNull(input.telefone_2),
+//     obs: emptyToNull(input.obs),
+//     ficha: emptyToNull(input.ficha),
+    
+//     // Campos obrigatórios
+//     status: input.status || 'Ativo',
+//     contato: input.contato || '',
+//     razaoSocial: input.razaoSocial,
+//     funcionarioPrincipalId: input.funcionarioPrincipalId,
+//     funcionarioSecundarioId: input.funcionarioSecundarioId,
+//     situacao: input.situacao || 'Liberado',
+//   };
+
+//   return payload;
+// }
+
+
 function mapToBackend(input: UpsertClientInput) {
   const payload = {
-    cnpj: emptyToNull(input.cnpj),
-    cpf: emptyToNull(input.cpf),
-    email: emptyToNull(input.email),
-    fantasia: emptyToNull(input.fantasia),
-    cep: emptyToNull(input.cep),
-    endereco: emptyToNull(input.endereco),
-    num: emptyToNull(input.num),
-    bairro: emptyToNull(input.bairro),
-    uf: emptyToNull(input.uf),
-    cidade: emptyToNull(input.cidade),
-    pontoReferencia: emptyToNull(input.pontoReferencia),
-    telefone_2: emptyToNull(input.telefone_2),
-    obs: emptyToNull(input.obs),
-    ficha: emptyToNull(input.ficha),
+    // ⚠️ NÃO converter para null - manter strings vazias
+    cnpj: input.cnpj || '',
+    cpf: input.cpf || '',
+    email: input.email || '',
+    fantasia: input.fantasia || '',
+    cep: input.cep || '',
+    endereco: input.endereco || '',
+    num: input.num || '',
+    bairro: input.bairro || '',
+    uf: input.uf || '',
+    cidade: input.cidade || '',
+    pontoReferencia: input.pontoReferencia || '',
+    telefone_2: input.telefone_2 || '',
+    obs: input.obs || '',
+    ficha: input.ficha || '',
     
     // Campos obrigatórios
     status: input.status || 'Ativo',
@@ -165,3 +196,4 @@ export async function listVendedores(opts?: Opts): Promise<Employee[]> {
 export async function listCobradores(opts?: Opts): Promise<Employee[]> {
   return await api.get<Employee[]>('/cobrador', opts);
 }
+
