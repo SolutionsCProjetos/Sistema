@@ -144,7 +144,7 @@ export default function ReceberListPage() {
             head: [['Status', 'Cobrador', 'Cidade', 'Cliente', 'N° Ficha', 'Data Venda', 'Valor Pcl.']],
             body: lista.map((it) => [
                 it.status ?? '—',
-                it.usuario?.nome ?? '—',
+                it.cobradorNome ?? '—',
                 it.cidade ?? '—',
                 it.clienteNome ?? '—',
                 it.ficha ?? '—',
@@ -479,4 +479,5 @@ export default function ReceberListPage() {
         </div>
     );
 }
+
 
