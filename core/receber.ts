@@ -24,6 +24,8 @@ export type Receber = {
   empresa?: string | null;
   createdAt?: string;        // ISO
   usuario?: { id: number; nome: string } | null;
+  dataVenda?: string | null;      // pode usar createdAt ou outro campo
+  cobradorNome?: string | null;   // pode vir de usuario?.nome
 };
 
 export type ReceberInput = {
@@ -203,4 +205,5 @@ export async function listReceberPorCliente(clienteId: number, opts?: Opts): Pro
     empresa: r.empresa ?? null,
   }));
 }
+
 
