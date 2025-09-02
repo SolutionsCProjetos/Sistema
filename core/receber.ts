@@ -81,6 +81,8 @@ export async function listReceber(opts?: Opts): Promise<Receber[]> {
     melhorDia: r.melhorDia != null ? parseNumber(r.melhorDia) : null,
     empresa: r.empresa ?? null,
     createdAt: r.createdAt ?? null,
+    usuario: r.usuario ?? null,
+    cobradorNome: r.cobradorNome ?? r.usuario?.nome ?? null,
   }));
 }
 
@@ -201,3 +203,4 @@ export async function listReceberPorCliente(clienteId: number, opts?: Opts): Pro
     empresa: r.empresa ?? null,
   }));
 }
+
