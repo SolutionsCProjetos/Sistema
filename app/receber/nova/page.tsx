@@ -11,9 +11,10 @@ export default function NovaReceberPage() {
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header userName="Administrador" />
       <main className="flex-grow mx-4 lg:mx-[10%] py-6">
-        <ReceberForm onSaved={() => router.push('/receber')} onCancel={() => router.push('/receber')} />
+        <ReceberForm onSaved={() => router.push('/financeiro')} onCancel={() => router.push('/financeiro')} />
       </main>
       <Footer />
     </div>
   );
 }
+
