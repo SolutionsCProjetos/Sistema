@@ -100,92 +100,90 @@ export default function RecebidosListPage() {
   }, [lista, pagina]);
 
   // 🔹 Geração do PDF
- function gerarPDF() {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
+  function gerarPDF() {
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
-  // Cabeçalho
-  doc.setFontSize(16);
-  doc.setFont("helvetica", "bold");
-  doc.text("Relatório de Recebidos", pageWidth / 2, 20, { align: "center" });
+    // aplica filtros do modal
+    let dados = [...lista];
+    if (cobradorId) {
+      dados = dados.filter(
+        (it) => (it.cobrador ?? '').toLowerCase() === cobradorId.toLowerCase()
+      );
+    }
+    if (cidade) {
+      dados = dados.filter(
+        (it) => (it.cidade ?? '').toLowerCase().includes(cidade.toLowerCase())
+      );
+    }
+    if (dataIniRel) {
+      dados = dados.filter((it) => it.recebido?.slice(0, 10) >= dataIniRel);
+    }
+    if (dataFimRel) {
+      dados = dados.filter((it) => it.recebido?.slice(0, 10) <= dataFimRel);
+    }
 
-  autoTable(doc, {
-    startY: 35,
-    head: [["Cobrador", "Nº C.Receber", "Cliente", "Nº Ficha", "Recebido", "Valor Pago", "Ação"]],
-    body: lista.map((it) => [
-      it.cobrador ?? "—",
-      it.idReceber ?? "—",
-      it.cliente ?? "—",
-      it.ficha ?? "—",
-      formatBRFromISO(it.recebido),
-      `R$ ${it.valorPago.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`,
-      "—",
-    ]),
-    styles: {
-      fontSize: 11,
-      cellPadding: 5,
-    },
-    headStyles: {
-      fillColor: [28, 125, 135],
-      textColor: 255,
-      fontSize: 12,
-      halign: "center",
-    },
-    bodyStyles: {
-      halign: "center",
-    },
-    columnStyles: {
-      0: { halign: "left" },
-      2: { halign: "left" },
-    },
-    didDrawPage: (data) => {
-      // Marca d'água - CORREÇÃO SIMPLES E FUNCIONAL
-      if (marcaDagua && LOGO_BASE64.startsWith("data:image")) {
-        try {
-          doc.saveGraphicsState();
-          const gState = new (doc as any).GState({ opacity: 0.05 });
-          doc.setGState(gState);
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Relatório de Recebidos', pageWidth / 2, 20, { align: 'center' });
 
-          // Usar dimensões fixas mas que preenchem melhor a página
-          const logoWidth = pageWidth * 0.8; // 80% da largura da página
-          const logoHeight = logoWidth * 0.6; // Proporção de 1.66 (ajuste conforme sua logo)
-          
-          // Centralizar a imagem
-          const x = (pageWidth - logoWidth) / 2;
-          const y = (pageHeight - logoHeight) / 2;
+    autoTable(doc, {
+      startY: 35,
+      head: [['Cobrador', 'Nº C.Receber', 'Cliente', 'Nº Ficha', 'Recebido', 'Valor Pago']],
+      body: dados.map((it) => [
+        it.cobrador ?? '—',
+        it.idReceber ?? '—',
+        it.cliente ?? '—',
+        it.ficha ?? '—',
+        formatBRFromISO(it.recebido),
+        `R$ ${it.valorPago.toLocaleString('pt-BR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
+      ]),
+      styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak' },
+      headStyles: {
+        fillColor: [28, 125, 135],
+        textColor: 255,
+        fontSize: 11,
+        halign: 'center',
+      },
+      bodyStyles: { halign: 'center', valign: 'middle' },
+      didDrawPage: (data) => {
+        // Marca d’água
+        if (marcaDagua && LOGO_BASE64.startsWith('data:image')) {
+          try {
+            doc.saveGraphicsState();
+            const gState = new (doc as any).GState({ opacity: 0.05 });
+            doc.setGState(gState);
 
-          doc.addImage(
-            LOGO_BASE64,
-            "PNG",
-            x,
-            y,
-            logoWidth,
-            logoHeight
-          );
+            const logoWidth = pageWidth * 1;
+            const logoHeight = logoWidth * 1;
+            const x = (pageWidth - logoWidth) / 2;
+            const y = (pageHeight - logoHeight) / 2;
 
-          doc.restoreGraphicsState();
-        } catch (error) {
-          console.error("Erro ao adicionar marca d'água:", error);
+            doc.addImage(LOGO_BASE64, 'PNG', x, y, logoWidth, logoHeight);
+            doc.restoreGraphicsState();
+          } catch (error) {
+            console.error('Erro marca d’água:', error);
+          }
         }
-      }
 
-      // Paginação
-      const totalPages = (doc as any).internal.getNumberOfPages();
-      const currentPage = data.pageNumber;
-      const str = `Página ${currentPage} de ${totalPages}`;
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text(str, pageWidth - 14, pageHeight - 10, { align: "right" });
-    },
-  });
+        // Paginação
+        const totalPages = (doc as any).internal.getNumberOfPages();
+        const currentPage = data.pageNumber;
+        const str = `Página ${currentPage} de ${totalPages}`;
+        doc.setFontSize(9);
+        doc.setTextColor(100);
+        doc.text(str, pageWidth - 14, pageHeight - 10, { align: 'right' });
+      },
+    });
 
-  doc.save("relatorio-recebidos.pdf");
-  setRelatorioOpen(false);
-}
+    doc.save('relatorio-recebidos.pdf');
+    setRelatorioOpen(false);
+  }
 
 
   return (
@@ -304,8 +302,8 @@ export default function RecebidosListPage() {
                       </td>
                     </tr>
                   ) : (
-                    visiveis.map((cad,  index) => (
-                      <tr key={`recb-${cad.id ?? cad.idReceber}-${index}`}  className="even:bg-[#c4f9ff]">
+                    visiveis.map((cad, index) => (
+                      <tr key={`recb-${cad.id ?? cad.idReceber}-${index}`} className="even:bg-[#c4f9ff]">
                         <td className="px-4 py-3">{cad.cobrador ?? '—'}</td>
                         <td className="px-4 py-3">{cad.idReceber ?? '—'}</td>
                         <td className="px-4 py-3">{cad.cliente ?? '—'}</td>
@@ -375,7 +373,7 @@ export default function RecebidosListPage() {
                 >
                   <option value="">Todos</option>
                   {cobradores.map((c) => (
-                    <option key={c.id} value={c.id}>
+                    <option key={c.id} value={c.nome}>
                       {c.nome}
                     </option>
                   ))}
@@ -409,6 +407,14 @@ export default function RecebidosListPage() {
                   className="w-full border rounded px-3 py-2"
                 />
               </div>
+              <div className="col-span-2 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={marcaDagua}
+                  onChange={(e) => setMarcaDagua(e.target.checked)}
+                />
+                <label>Adicionar marca d'água com logo</label>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3">
@@ -431,9 +437,8 @@ export default function RecebidosListPage() {
 
       {toast && (
         <div
-          className={`fixed bottom-4 right-4 px-4 py-2 rounded shadow z-50 ${
-            toast.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-          }`}
+          className={`fixed bottom-4 right-4 px-4 py-2 rounded shadow z-50 ${toast.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+            }`}
         >
           {toast.text}
         </div>
@@ -441,4 +446,3 @@ export default function RecebidosListPage() {
     </div>
   );
 }
-
