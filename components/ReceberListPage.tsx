@@ -135,6 +135,25 @@ export default function ReceberListPage() {
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
 
+        // aplica filtros do modal
+        let dados = [...lista];
+        if (cobradorId) {
+            dados = dados.filter(
+                (it) => (it.cobradorNome ?? '').toLowerCase() === cobradorId.toLowerCase()
+            );
+        }
+        if (cidade) {
+            dados = dados.filter(
+                (it) => (it.cidade ?? '').toLowerCase().includes(cidade.toLowerCase())
+            );
+        }
+        if (dataIniRel) {
+            dados = dados.filter((it) => (it.createdAt ?? it.vencimento)?.slice(0, 10) >= dataIniRel);
+        }
+        if (dataFimRel) {
+            dados = dados.filter((it) => (it.createdAt ?? it.vencimento)?.slice(0, 10) <= dataFimRel);
+        }
+
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
         doc.text('Relatório de Contas a Receber', pageWidth / 2, 20, { align: 'center' });
@@ -142,7 +161,7 @@ export default function ReceberListPage() {
         autoTable(doc, {
             startY: 35,
             head: [['Status', 'Cobrador', 'Cidade', 'Cliente', 'N° Ficha', 'Data Venda', 'Valor Pcl.']],
-            body: lista.map((it) => [
+            body: dados.map((it) => [
                 it.status ?? '—',
                 it.cobradorNome ?? '—',
                 it.cidade ?? '—',
@@ -162,35 +181,27 @@ export default function ReceberListPage() {
                 halign: 'center',
             },
             bodyStyles: { halign: 'center', valign: 'middle' },
-            columnStyles: {
-                0: { cellWidth: 20 },
-                1: { cellWidth: 30 },
-                2: { cellWidth: 30 },
-                3: { cellWidth: 'auto' },
-                4: { cellWidth: 20, halign: 'center' },
-                5: { cellWidth: 25, halign: 'center' },
-                6: { cellWidth: 25, halign: 'right' },
-            },
-            tableWidth: 'auto',
             didDrawPage: (data) => {
+                // Marca d’água
                 if (marcaDagua && LOGO_BASE64.startsWith('data:image')) {
                     try {
                         doc.saveGraphicsState();
                         const gState = new (doc as any).GState({ opacity: 0.05 });
                         doc.setGState(gState);
 
-                        const logoWidth = pageWidth * 0.7;
-                        const logoHeight = logoWidth * 0.5;
+                        const logoWidth = pageWidth * 1;
+                        const logoHeight = logoWidth * 1;
                         const x = (pageWidth - logoWidth) / 2;
                         const y = (pageHeight - logoHeight) / 2;
 
                         doc.addImage(LOGO_BASE64, 'PNG', x, y, logoWidth, logoHeight);
                         doc.restoreGraphicsState();
                     } catch (err) {
-                        console.error('Erro marca d´água:', err);
+                        console.error('Erro marca d’água:', err);
                     }
                 }
 
+                // Paginação
                 const totalPages = (doc as any).internal.getNumberOfPages();
                 const currentPage = data.pageNumber;
                 const str = `Página ${currentPage} de ${totalPages}`;
@@ -203,6 +214,7 @@ export default function ReceberListPage() {
         doc.save('contas-a-receber.pdf');
         setRelatorioOpen(false);
     }
+
 
     return (
         <div className="flex flex-col">
@@ -397,7 +409,7 @@ export default function ReceberListPage() {
                 </div>
             </main>
 
-            {/* 🔹 Modal Relatório */}
+            {/* Modal Relatório */}
             {relatorioOpen && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg p-6 w-full max-w-lg">
@@ -413,7 +425,7 @@ export default function ReceberListPage() {
                                 >
                                     <option value="">Todos</option>
                                     {cobradores.map((c) => (
-                                        <option key={c.id} value={c.id}>
+                                        <option key={c.id} value={c.nome}>
                                             {c.nome}
                                         </option>
                                     ))}
@@ -479,5 +491,3 @@ export default function ReceberListPage() {
         </div>
     );
 }
-
-
