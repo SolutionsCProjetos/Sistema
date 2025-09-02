@@ -67,7 +67,7 @@ export default function Header({ userName = 'Usuário Admin' }: HeaderProps) {
           <Link href="/agenda" className={`font-medium flex items-center ${isActive('/agenda')}`}>
             <FaUsers className="mr-1" /> Agenda
           </Link>
-          <Link href="/receber" className={`font-medium flex items-center ${isActive('/receber')}`}>
+          <Link href="/financeiro" className={`font-medium flex items-center ${isActive('/financeiro')}`}>
             <FaChartBar className="mr-1" /> Financeiro
           </Link>
           <Link href="/funcionarios" className={`font-medium flex items-center ${isActive('/funcionarios')}`}>
@@ -173,3 +173,4 @@ export default function Header({ userName = 'Usuário Admin' }: HeaderProps) {
     </header>
   );
 }
+
