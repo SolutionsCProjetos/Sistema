@@ -38,8 +38,8 @@ export default function EditReceberPage() {
           <ReceberForm
             editingId={rec.id}
             initial={rec}
-            onSaved={() => router.push('/receber')}
-            onCancel={() => router.push('/receber')}
+            onSaved={() => router.push('/financeiro')}
+            onCancel={() => router.push('/financeiro')}
           />
         )}
       </main>
@@ -47,3 +47,4 @@ export default function EditReceberPage() {
     </div>
   );
 }
+
