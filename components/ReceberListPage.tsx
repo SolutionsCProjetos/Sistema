@@ -447,14 +447,6 @@ export default function ReceberListPage() {
                                     className="w-full border rounded px-3 py-2"
                                 />
                             </div>
-                            <div className="col-span-2 flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={marcaDagua}
-                                    onChange={(e) => setMarcaDagua(e.target.checked)}
-                                />
-                                <label>Adicionar marca d'água com logo</label>
-                            </div>
                         </div>
 
                         <div className="flex justify-end gap-3">
@@ -487,3 +479,4 @@ export default function ReceberListPage() {
         </div>
     );
 }
+
