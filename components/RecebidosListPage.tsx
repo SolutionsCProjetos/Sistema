@@ -99,91 +99,194 @@ export default function RecebidosListPage() {
     return lista.slice(start, start + ITENS_POR_PAGINA);
   }, [lista, pagina]);
 
+  // // 🔹 Geração do PDF
+  // function gerarPDF() {
+  //   const doc = new jsPDF('p', 'mm', 'a4');
+  //   const pageWidth = doc.internal.pageSize.getWidth();
+  //   const pageHeight = doc.internal.pageSize.getHeight();
+
+  //   // aplica filtros do modal
+  //   let dados = [...lista];
+  //   if (cobradorId) {
+  //     dados = dados.filter(
+  //       (it) => (it.cobrador ?? '').toLowerCase() === cobradorId.toLowerCase()
+  //     );
+  //   }
+  //   if (cidade) {
+  //     dados = dados.filter(
+  //       (it) => (it.cidade ?? '').toLowerCase().includes(cidade.toLowerCase())
+  //     );
+  //   }
+  //   if (dataIniRel) {
+  //     dados = dados.filter((it) => it.recebido?.slice(0, 10) >= dataIniRel);
+  //   }
+  //   if (dataFimRel) {
+  //     dados = dados.filter((it) => it.recebido?.slice(0, 10) <= dataFimRel);
+  //   }
+
+  //   // Cabeçalho
+  //   doc.setFontSize(16);
+  //   doc.setFont('helvetica', 'bold');
+  //   doc.text('Relatório de Recebidos', pageWidth / 2, 20, { align: 'center' });
+
+  //   autoTable(doc, {
+  //     startY: 35,
+  //     head: [['Cobrador', 'Nº C.Receber', 'Cliente', 'Nº Ficha', 'Recebido', 'Valor Pago']],
+  //     body: dados.map((it) => [
+  //       it.cobrador ?? '—',
+  //       it.idReceber ?? '—',
+  //       it.cliente ?? '—',
+  //       it.ficha ?? '—',
+  //       formatBRFromISO(it.recebido),
+  //       `R$ ${it.valorPago.toLocaleString('pt-BR', {
+  //         minimumFractionDigits: 2,
+  //         maximumFractionDigits: 2,
+  //       })}`,
+  //     ]),
+  //     styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak' },
+  //     headStyles: {
+  //       fillColor: [28, 125, 135],
+  //       textColor: 255,
+  //       fontSize: 11,
+  //       halign: 'center',
+  //     },
+  //     bodyStyles: { halign: 'center', valign: 'middle' },
+  //     didDrawPage: (data) => {
+  //       // Marca d’água
+  //       if (marcaDagua && LOGO_BASE64.startsWith('data:image')) {
+  //         try {
+  //           doc.saveGraphicsState();
+  //           const gState = new (doc as any).GState({ opacity: 0.05 });
+  //           doc.setGState(gState);
+
+  //           const logoWidth = pageWidth * 1;
+  //           const logoHeight = logoWidth * 1;
+  //           const x = (pageWidth - logoWidth) / 2;
+  //           const y = (pageHeight - logoHeight) / 2;
+
+  //           doc.addImage(LOGO_BASE64, 'PNG', x, y, logoWidth, logoHeight);
+  //           doc.restoreGraphicsState();
+  //         } catch (error) {
+  //           console.error('Erro marca d’água:', error);
+  //         }
+  //       }
+
+  //       // Paginação
+  //       const totalPages = (doc as any).internal.getNumberOfPages();
+  //       const currentPage = data.pageNumber;
+  //       const str = `Página ${currentPage} de ${totalPages}`;
+  //       doc.setFontSize(9);
+  //       doc.setTextColor(100);
+  //       doc.text(str, pageWidth - 14, pageHeight - 10, { align: 'right' });
+  //     },
+  //   });
+
+  //   doc.save('relatorio-recebidos.pdf');
+  //   setRelatorioOpen(false);
+  // }
+
+
   // 🔹 Geração do PDF
-  function gerarPDF() {
-    const doc = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
+function gerarPDF() {
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
 
-    // aplica filtros do modal
-    let dados = [...lista];
-    if (cobradorId) {
-      dados = dados.filter(
-        (it) => (it.cobrador ?? '').toLowerCase() === cobradorId.toLowerCase()
-      );
-    }
-    if (cidade) {
-      dados = dados.filter(
-        (it) => (it.cidade ?? '').toLowerCase().includes(cidade.toLowerCase())
-      );
-    }
-    if (dataIniRel) {
-      dados = dados.filter((it) => it.recebido?.slice(0, 10) >= dataIniRel);
-    }
-    if (dataFimRel) {
-      dados = dados.filter((it) => it.recebido?.slice(0, 10) <= dataFimRel);
-    }
-
-    // Cabeçalho
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Relatório de Recebidos', pageWidth / 2, 20, { align: 'center' });
-
-    autoTable(doc, {
-      startY: 35,
-      head: [['Cobrador', 'Nº C.Receber', 'Cliente', 'Nº Ficha', 'Recebido', 'Valor Pago']],
-      body: dados.map((it) => [
-        it.cobrador ?? '—',
-        it.idReceber ?? '—',
-        it.cliente ?? '—',
-        it.ficha ?? '—',
-        formatBRFromISO(it.recebido),
-        `R$ ${it.valorPago.toLocaleString('pt-BR', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`,
-      ]),
-      styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak' },
-      headStyles: {
-        fillColor: [28, 125, 135],
-        textColor: 255,
-        fontSize: 11,
-        halign: 'center',
-      },
-      bodyStyles: { halign: 'center', valign: 'middle' },
-      didDrawPage: (data) => {
-        // Marca d’água
-        if (marcaDagua && LOGO_BASE64.startsWith('data:image')) {
-          try {
-            doc.saveGraphicsState();
-            const gState = new (doc as any).GState({ opacity: 0.05 });
-            doc.setGState(gState);
-
-            const logoWidth = pageWidth * 1;
-            const logoHeight = logoWidth * 1;
-            const x = (pageWidth - logoWidth) / 2;
-            const y = (pageHeight - logoHeight) / 2;
-
-            doc.addImage(LOGO_BASE64, 'PNG', x, y, logoWidth, logoHeight);
-            doc.restoreGraphicsState();
-          } catch (error) {
-            console.error('Erro marca d’água:', error);
-          }
-        }
-
-        // Paginação
-        const totalPages = (doc as any).internal.getNumberOfPages();
-        const currentPage = data.pageNumber;
-        const str = `Página ${currentPage} de ${totalPages}`;
-        doc.setFontSize(9);
-        doc.setTextColor(100);
-        doc.text(str, pageWidth - 14, pageHeight - 10, { align: 'right' });
-      },
-    });
-
-    doc.save('relatorio-recebidos.pdf');
-    setRelatorioOpen(false);
+  // aplica filtros do modal
+  let dados = [...lista];
+  if (cobradorId) {
+    dados = dados.filter(
+      (it) => (it.cobrador ?? '').toLowerCase() === cobradorId.toLowerCase()
+    );
   }
+  if (cidade) {
+    dados = dados.filter(
+      (it) => (it.cidade ?? '').toLowerCase().includes(cidade.toLowerCase())
+    );
+  }
+  if (dataIniRel) {
+    dados = dados.filter((it) => it.recebido?.slice(0, 10) >= dataIniRel);
+  }
+  if (dataFimRel) {
+    dados = dados.filter((it) => it.recebido?.slice(0, 10) <= dataFimRel);
+  }
+
+  // 🔹 calcula total
+  const total = dados.reduce((acc, it) => acc + (it.valorPago || 0), 0);
+
+  // Cabeçalho
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Relatório de Recebidos', pageWidth / 2, 20, { align: 'center' });
+
+  autoTable(doc, {
+    startY: 35,
+    head: [['Cobrador', 'Nº C.Receber', 'Cliente', 'Nº Ficha', 'Recebido', 'Valor Pago']],
+    body: dados.map((it) => [
+      it.cobrador ?? '—',
+      it.idReceber ?? '—',
+      it.cliente ?? '—',
+      it.ficha ?? '—',
+      formatBRFromISO(it.recebido),
+      `R$ ${it.valorPago.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`,
+    ]),
+    styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak' },
+    headStyles: {
+      fillColor: [28, 125, 135],
+      textColor: 255,
+      fontSize: 11,
+      halign: 'center',
+    },
+    bodyStyles: { halign: 'center', valign: 'middle' },
+    didDrawPage: (data) => {
+      // Marca d’água
+      if (marcaDagua && LOGO_BASE64.startsWith('data:image')) {
+        try {
+          doc.saveGraphicsState();
+          const gState = new (doc as any).GState({ opacity: 0.05 });
+          doc.setGState(gState);
+
+          const logoWidth = pageWidth * 1;
+          const logoHeight = logoWidth * 1;
+          const x = (pageWidth - logoWidth) / 2;
+          const y = (pageHeight - logoHeight) / 2;
+
+          doc.addImage(LOGO_BASE64, 'PNG', x, y, logoWidth, logoHeight);
+          doc.restoreGraphicsState();
+        } catch (error) {
+          console.error('Erro marca dagua:', error);
+        }
+      }
+
+      // Paginação
+      const totalPages = (doc as any).internal.getNumberOfPages();
+      const currentPage = data.pageNumber;
+      const str = `Página ${currentPage} de ${totalPages}`;
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text(str, pageWidth - 14, pageHeight - 10, { align: 'right' });
+    },
+  });
+
+  // 🔹 posição final da última tabela
+  const finalY = (doc as any).lastAutoTable.finalY || 35;
+
+  // 🔹 escreve o total apenas no fim da última página
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text(
+    `Total: R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    pageWidth - 20,
+    finalY + 10,
+    { align: 'right' }
+  );
+
+  doc.save('relatorio-recebidos.pdf');
+  setRelatorioOpen(false);
+}
 
 
   return (
@@ -438,4 +541,5 @@ export default function RecebidosListPage() {
     </div>
   );
 }
+
 
